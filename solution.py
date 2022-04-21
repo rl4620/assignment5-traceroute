@@ -129,18 +129,22 @@ def get_route(hostname):
                 #Fetch the icmp type from the IP packet
                 ip_header = recvPacket[0: 20]
                 icmp_header = recvPacket[20:28]
-                version_header_length, type_of_service, datagram_length, identifier, flags_and_offset, return_ttl, upper_protocol, header_checksum, rtr_ip, dest_ip = struct.unpack("bbhhhbbhii", ip_header)
+                version_header_length, type_of_service, datagram_length, identifier, flags_and_offset, return_ttl, upper_protocol, header_checksum, rtr_ip, dest_ip = struct.unpack("!bbhhhbbhii", ip_header)
                 # print("ip header:" + str(ip_header))
                 # print("icmp header:" + str(icmp_header))
+                # print(rtr_ip)
                 if rtr_ip < 0:
                     rtr_ip = rtr_ip + 2**32
-                router_ip = str(ipaddress.ip_address(rtr_ip))
+                # print(rtr_ip)
+                router_ip = ipaddress.ip_address(rtr_ip).__str__()
+                # router_ip = '.'.join([str(rtr_ip >> (i << 3) & 0xFF) for i in range(4)[::-1]])
+                # print((int)(ipaddress.ip_address(router_ip)))
                 types, code, checksum, p_id, sequence = struct.unpack("bbHHh", icmp_header)
                 #Fill in end
                 try: #try to fetch the hostname
                     #Fill in start
                     routername, routernames1, routernames2 = gethostbyaddr(router_ip)
-                    print("hostname: " + routername)
+                    # print("hostname: " + routername)
                     #Fill in end
                 except herror:   #if the host does not provide a hostname
                     #Fill in start
@@ -154,7 +158,7 @@ def get_route(hostname):
                 if types == 11:
                     bytes = struct.calcsize("d")
                     # timeSent = struct.unpack("d", recvPacket[28:28 + bytes])[0]
-                    print("timeSent: " + str(timeSent) + ", timeStarted: " + str(startedSelect))
+                    # print("timeSent: " + str(timeSent) + ", timeStarted: " + str(startedSelect))
                     delay = round(((1000*(timeSent - startedSelect))/2), 2)
                     #Fill in start
                     #You should add your responses to your lists here
@@ -162,14 +166,14 @@ def get_route(hostname):
                     tracelist1.append(str(delay)+"ms")          # rtt
                     tracelist1.append(router_ip)    # host ip
                     tracelist1.append(routername)   # hostname
-                    print(tracelist1)
+                    # print(tracelist1)
                     tracelist2.append(tracelist1)
                     continue
                     #Fill in end
                 elif types == 3:
                     bytes = struct.calcsize("d")
                     # timeSent = struct.unpack("d", recvPacket[28:28 + bytes])[0]
-                    print("timeSent: " + str(timeSent) + ", timeStarted: " + str(startedSelect))
+                    # print("timeSent: " + str(timeSent) + ", timeStarted: " + str(startedSelect))
                     delay = round(((1000*(timeSent - startedSelect))/2), 2)
                     #Fill in start
                     #You should add your responses to your lists here 
@@ -177,14 +181,14 @@ def get_route(hostname):
                     tracelist1.append(str(delay)+"ms")          # rtt
                     tracelist1.append(router_ip)    # host ip
                     tracelist1.append("destination unreachable")   # hostname                    
-                    print(tracelist1)
+                    # print(tracelist1)
                     tracelist2.append(tracelist1)
                     continue
                 #Fill in end
                 elif types == 0:
                     bytes = struct.calcsize("d")
                     # timeSent = struct.unpack("d", recvPacket[28:28 + bytes])[0]
-                    print("timeSent: " + str(timeSent) + ", timeStarted: " + str(startedSelect))
+                    # print("timeSent: " + str(timeSent) + ", timeStarted: " + str(startedSelect))
                     delay = round(((1000*(timeSent - startedSelect))/2), 2)
                     #Fill in start
                     #You should add your responses to your lists here and return your list if your destination IP is met
@@ -192,8 +196,9 @@ def get_route(hostname):
                     tracelist1.append(str(delay)+"ms")          # rtt
                     tracelist1.append(router_ip)    # host ip
                     tracelist1.append("final destination: " + routername)   # hostname
-                    print(tracelist1)
+                    # print(tracelist1)
                     tracelist2.append(tracelist1)
+                    print(tracelist2)
                     return tracelist2
                     #Fill in end
                 else:
@@ -203,7 +208,7 @@ def get_route(hostname):
                     tracelist1.append("*")          # rtt
                     tracelist1.append(router_ip)    # host ip
                     tracelist1.append(routername)   # hostname
-                    print(tracelist1)
+                    # print(tracelist1)
                     tracelist2.append(tracelist1)
                     continue
                     #Fill in end
